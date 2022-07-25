@@ -1,0 +1,77 @@
+\ProvidesPackage{hasktex}[2022/07/25 v1.0 Haskell language support for latex]
+
+\RequirePackage{etoolbox}
+
+\edef\@hasktex@tmpfile{\jobname.hasktex.tmp}
+
+% TODO: kinds
+\def\GetTypeSimple{\@ifstar\hasktex@getsimpletype@full\hasktex@getsimpletype@small}%
+\def\hasktex@getsimpletype@read#1#2{\immediate\write18{ghc -v0 --interactive -e ":set +t +m +r" -e "#2" &> \@hasktex@tmpfile}\@hasktex@outread@type{#1}}
+\def\hasktex@guardmode{\let\do\@makeother\dospecials\catcode`{\@ne\catcode`}\tw@\catcode`\ =10 \catcode`\#=6\obeyspaces\obeylines}
+\newcommand*\hasktex@getsimpletype@full[1][\hasktex@hslasttype]{\begingroup\def\@hasktex@format{\@hasktex@line}\begingroup\hasktex@guardmode\hasktex@getsimpletype@read{#1}}
+\newcommand*\hasktex@getsimpletype@small[1][\hasktex@hslasttype]{\begingroup\def\@hasktex@format{\@type}\begingroup\hasktex@guardmode\hasktex@getsimpletype@read{#1}}
+
+\let\hasktex@hslasttype\@empty
+
+\def\@hasktex@strip@#1 :: #2 \@nil{\protected@edef\@fn{#1}\protected@edef\@type{#2}}
+\def\@hasktex@format{\@type}
+
+\newif\ifhasktexlasterror
+\def\@hasktex@iserr{\@ifnextchar<\hasktex@iserr@y\hasktex@iserr@n}
+% consume the test
+\def\hasktex@iserr@y#1\@nil{\global\hasktexlasterrortrue}
+\def\hasktex@iserr@n#1\@nil{\global\hasktexlasterrorfalse}
+\newread\@hasktex@read
+% #1 is target
+\def\@hasktex@outread@type#1{%
+\endgroup% guard end
+% if it is an expression we do get
+\openin\@hasktex@read=\@hasktex@tmpfile
+\loop\unless\ifeof\@hasktex@read
+   \read\@hasktex@read to\@hasktex@line
+   \expandafter\ifx\@hasktex@line\par\else
+      \expandafter\@hasktex@iserr\@hasktex@line\@nil
+      \ifhasktexlasterror
+         \ifx#1\hasktex@hslasttype \@hasktex@line\else
+         \protected@xdef#1{\@hasktex@line}\fi
+      \else
+         \global\let\@hasktext@lastline\@hasktex@line
+      \fi
+   \fi
+\repeat
+\closein\@hasktex@read
+\let\@hasktex@line\@hasktext@lastline
+\expandafter\@hasktex@strip@\@hasktex@line\@nil
+\ifx#1\hasktex@hslasttype \@hasktex@format\else
+\protected@xdef#1{\@hasktex@format}\fi
+\endgroup % outer group
+}
+
+% supply a filename
+\def\LoadTypesFrom#1{\immediate\write18{ghc -v0 --interactive -e ":browse " "#1" &> \@hasktex@tmpfile}\@hasktex@outread@browse}
+
+\newread\@hasktex@read
+\def\@hasktex@outread@browse{%
+\openin\@hasktex@read=\@hasktex@tmpfile
+\loop\unless\ifeof\@hasktex@read
+   % we need the last line, previous lines may contain results etc.
+   \read\@hasktex@read to\@hasktex@line
+   \expandafter\ifx\@hasktex@line\par\else
+      \expandafter\@hasktex@iserr\@hasktex@line\@nil
+      \ifhasktexlasterror
+         ERROR: \@hasktex@line
+      \else
+         \expandafter\@hasktex@strip@\@hasktex@line\@nil
+         \expandafter\hsktex@StoreType\expandafter{\@fn}{\@hasktex@line}%
+      \fi
+   \fi
+\repeat
+\closein\@hasktex@read
+}
+
+\def\hsktex@StoreType#1#2{\expandafter\protected@xdef\csname hsktex@#1\endcsname{#2}}
+\def\GetType#1{\csname hsktex@#1\endcsname}
+
+\AtEndDocument{\immediate\write18{[ -f "\@hasktex@tmpfile" ] && rm "\@hasktex@tmpfile"}}
+
+\endinput

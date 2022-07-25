@@ -1,0 +1,41 @@
+\errorcontextlines9999
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{hasktex}
+\usepackage{listingsutf8}
+
+\usepackage[default]{FiraSans}
+\usepackage{FiraMono}
+\parindent0pt
+\def\errcheck{\ifhasktexlasterror There was an error!\else There was no error!\fi}
+
+\makeatletter
+\begin{document}
+Type ``\GetTypeSimple{2 + 3}''.
+
+Now, we want to print the full type: ``\GetTypeSimple*{2 + 3}''.
+\errcheck
+
+And we can print deal with errors: ``\GetTypeSimple{e}''.
+\errcheck
+
+We can also store the output in command: ``\GetTypeSimple*[\mycommand]{fib 0 = 1}''. Now we have: ``\mycommand''.
+\errcheck
+
+There is also file-support (this can and should be automated if the package is to be used):
+\begin{filecontents}[noheader,overwrite]{example.hs}
+-- >\GetType{fib};
+fib 0 = 0
+fib 1 = 1
+fib n = fib (n - 1) + fib (n - 2)
+
+-- >\GetType{fak};
+fak 0 = 1
+fak n = n * fak (n - 1)
+\end{filecontents}
+\LoadTypesFrom{example.hs}
+\lstinputlisting[escapeinside={--\ >}{;},language=haskell,basicstyle=\ttfamily]{example.hs}
+\end{document}
