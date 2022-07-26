@@ -26,7 +26,7 @@
 \def\@hasktex@outread@type#1{%
 \endgroup% guard end
 % if it is an expression we do get
-\openin\@hasktex@read=\@hasktex@tmpfile
+\openin\@hasktex@read={\@hasktex@tmpfile}
 \loop\unless\ifeof\@hasktex@read
    \read\@hasktex@read to\@hasktex@line
    \expandafter\ifx\@hasktex@line\par\else
@@ -47,15 +47,21 @@
 \endgroup % outer group
 }
 
-% supply a filename
-\def\LoadTypesFrom#1{\immediate\write18{ghc -v0 --interactive -e ":browse " "#1" &> \@hasktex@tmpfile}\@hasktex@outread@browse}
+% supply a filename this will be deferred to the end of the document
+% so tht it works from within vrb etc.
+\def\hasktex@endhk{}
+\def\LoadTypesFrom#1{\protected@xappto\hasktex@endhk{\noexpand\immediate\noexpand\write18{ghc -v0 --interactive -e ":browse" "#1" &> \@hasktex@tmpfile}\noexpand\@hasktex@outread@browse}}
+
+\AtEndDocument{\typeout{exec: \meaning\hasktex@endhk}\hasktex@endhk}
 
 \newread\@hasktex@read
 \def\@hasktex@outread@browse{%
 \openin\@hasktex@read={\@hasktex@tmpfile}%
+\typeout{READ FROM: \@hasktex@tmpfile}
 \loop\unless\ifeof\@hasktex@read
    % we need the last line, previous lines may contain results etc.
    \read\@hasktex@read to\@hasktex@line
+   \typeout{AT LINE: \@hasktex@line}%
    \expandafter\ifx\@hasktex@line\par\else
       \expandafter\@hasktex@iserr\@hasktex@line\@nil
       \ifhasktexlasterror
@@ -71,7 +77,13 @@
 
 \def\hasktex@TypePrefix{hasktex@}
 \def\hasktex@wrap#1{#1}
-\def\hasktex@StoreType#1#2{\expandafter\protected@xdef\csname \hasktex@TypePrefix#1\endcsname{\hasktex@wrap{#2}}}
+\def\hasktex@RawStoreType#1#2{%
+\typeout{Store: '#1' => '#2'}
+\expandafter\protected@xdef\csname \hasktex@TypePrefix#1\endcsname{\hasktex@wrap{#2}}}
+\def\hasktex@StoreType#1#2{%
+   \hasktex@RawStoreType{#1}{#2}%
+   \immediate\write\@auxout{\noexpand\hasktex@RawStoreType{#1}{#2}}%
+}
 \def\GetType#1{\csname \hasktex@TypePrefix#1\endcsname}
 
 \AtEndDocument{\immediate\write18{[ -f "\@hasktex@tmpfile" ] && rm "\@hasktex@tmpfile"}}
