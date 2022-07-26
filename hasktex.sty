@@ -52,7 +52,7 @@
 
 \newread\@hasktex@read
 \def\@hasktex@outread@browse{%
-\openin\@hasktex@read=\@hasktex@tmpfile
+\openin\@hasktex@read={\@hasktex@tmpfile}%
 \loop\unless\ifeof\@hasktex@read
    % we need the last line, previous lines may contain results etc.
    \read\@hasktex@read to\@hasktex@line
