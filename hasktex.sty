@@ -70,7 +70,8 @@
 }
 
 \def\hasktex@TypePrefix{hasktex@}
-\def\hasktex@StoreType#1#2{\expandafter\protected@xdef\csname \hasktex@TypePrefix#1\endcsname{#2}}
+\def\hasktex@wrap#1{#1}
+\def\hasktex@StoreType#1#2{\expandafter\protected@xdef\csname \hasktex@TypePrefix#1\endcsname{\hasktex@wrap{#2}}}
 \def\GetType#1{\csname \hasktex@TypePrefix#1\endcsname}
 
 \AtEndDocument{\immediate\write18{[ -f "\@hasktex@tmpfile" ] && rm "\@hasktex@tmpfile"}}
