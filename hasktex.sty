@@ -62,15 +62,16 @@
          ERROR: \@hasktex@line
       \else
          \expandafter\@hasktex@strip@\@hasktex@line\@nil
-         \expandafter\hsktex@StoreType\expandafter{\@fn}{\@hasktex@line}%
+         \expandafter\hasktex@StoreType\expandafter{\@fn}{\@hasktex@line}%
       \fi
    \fi
 \repeat
 \closein\@hasktex@read
 }
 
-\def\hsktex@StoreType#1#2{\expandafter\protected@xdef\csname hsktex@#1\endcsname{#2}}
-\def\GetType#1{\csname hsktex@#1\endcsname}
+\def\hasktex@TypePrefix{hasktex@}
+\def\hasktex@StoreType#1#2{\expandafter\protected@xdef\csname \hasktex@TypePrefix#1\endcsname{#2}}
+\def\GetType#1{\csname \hasktex@TypePrefix#1\endcsname}
 
 \AtEndDocument{\immediate\write18{[ -f "\@hasktex@tmpfile" ] && rm "\@hasktex@tmpfile"}}
 
