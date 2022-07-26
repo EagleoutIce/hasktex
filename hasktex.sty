@@ -7,7 +7,7 @@
 
 % TODO: kinds
 \def\GetTypeSimple{\@ifstar\hasktex@getsimpletype@full\hasktex@getsimpletype@small}%
-\def\hasktex@getsimpletype@read#1#2{\ShellEscape{ghc -v0 --interactive -e ":set +t +m +r" -e "#2" &> \@hasktex@tmpfile}\@hasktex@outread@type{#1}}
+\def\hasktex@getsimpletype@read#1#2{\ShellEscape{ghc -v0 --interactive -e ":set +t +m +r" -e "#2" | tee \@hasktex@tmpfile}\@hasktex@outread@type{#1}}
 \def\hasktex@guardmode{\let\do\@makeother\dospecials\catcode`{\@ne\catcode`}\tw@\catcode`\ =10 \catcode`\#=6\obeyspaces\obeylines}
 \newcommand*\hasktex@getsimpletype@full[1][\hasktex@hslasttype]{\begingroup\def\@hasktex@format{\@hasktex@line}\begingroup\hasktex@guardmode\hasktex@getsimpletype@read{#1}}
 \newcommand*\hasktex@getsimpletype@small[1][\hasktex@hslasttype]{\begingroup\def\@hasktex@format{\@type}\begingroup\hasktex@guardmode\hasktex@getsimpletype@read{#1}}
@@ -49,7 +49,7 @@
 }
 
 % supply a filename
-\def\LoadTypesFrom#1{\ShellEscape{ghc -v0 --interactive -e ":browse" "#1" &> "\@hasktex@tmpfile"}\@hasktex@outread@browse}
+\def\LoadTypesFrom#1{\ShellEscape{ghc -v0 --interactive -e ":browse" "#1" | tee "\@hasktex@tmpfile"}\@hasktex@outread@browse}
 
 \newread\@hasktex@read
 \def\@hasktex@outread@browse{%
